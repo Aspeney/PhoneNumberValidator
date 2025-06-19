@@ -1,4 +1,7 @@
-import org.example.*;
+import org.example.AmbiguityResolver;
+import org.example.PhoneNumberParser;
+import org.example.PhoneNumberService;
+import org.example.PhoneNumberValidator;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 

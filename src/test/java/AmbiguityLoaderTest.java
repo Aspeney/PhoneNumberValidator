@@ -1,54 +1,37 @@
 import org.example.AmbiguityLoader;
-import org.junit.jupiter.api.*;
-import java.io.*;
-import java.nio.file.*;
+import org.junit.jupiter.api.Test;
 import java.util.*;
-
 import static org.junit.jupiter.api.Assertions.*;
 
 class AmbiguityLoaderTest {
 
-    private static final String TEST_FILE = "test_ambiguities.txt";
-
-    @BeforeEach
-    void setupTestFile() throws IOException {
-        String content = String.join("\n",
-                "# This is a comment",
-                "",
-                "20 1=21,201",
-                "30 6=36,306",
-                "69=69,609",
-                "   82 = 82 , 802 ",
-                "invalidLineWithoutEquals"
-        );
-
-        Files.write(Paths.get(TEST_FILE), content.getBytes());
-    }
-
-    @AfterEach
-    void cleanupTestFile() throws IOException {
-        Files.deleteIfExists(Paths.get(TEST_FILE));
-    }
-
     @Test
-    void testLoadRulesParsesCorrectly() {
+    void testLoadRegularRulesGeneratesExpectedKeys() {
         AmbiguityLoader loader = new AmbiguityLoader();
-        Map<String, List<String>> rules = loader.loadRules(TEST_FILE);
+        Map<String, List<String>> rules = loader.loadRegularRules();
 
-        assertEquals(4, rules.size());
+        assertNotNull(rules);
+        assertFalse(rules.isEmpty());
 
+        // Two-token ambiguity
+        assertTrue(rules.containsKey("20 1"));
         assertIterableEquals(List.of("21", "201"), rules.get("20 1"));
+
+        assertTrue(rules.containsKey("30 6"));
         assertIterableEquals(List.of("36", "306"), rules.get("30 6"));
+
+        // One-token ambiguity
+        assertTrue(rules.containsKey("69"));
         assertIterableEquals(List.of("69", "609"), rules.get("69"));
-        assertIterableEquals(List.of("82", "802"), rules.get("82"));
     }
 
     @Test
-    void testMissingFileReturnsEmptyMap() {
+    void testStartOnlyRulesAreLoadedCorrectly() {
         AmbiguityLoader loader = new AmbiguityLoader();
-        Map<String, List<String>> result = loader.loadRules("nonexistent_file.txt");
+        Map<String, List<String>> startOnly = loader.loadStartOnlyRules();
 
-        assertNotNull(result);
-        assertTrue(result.isEmpty());
+        assertNotNull(startOnly);
+        assertTrue(startOnly.containsKey("69 30"));
+        assertIterableEquals(List.of("6930", "693"), startOnly.get("69 30"));
     }
 }

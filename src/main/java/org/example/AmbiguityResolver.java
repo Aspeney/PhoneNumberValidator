@@ -5,10 +5,12 @@ import java.util.*;
 public class AmbiguityResolver {
 
     private final Map<String, List<String>> ambiguityMap;
+    private final Map<String, List<String>> startOnlyMap;
 
     public AmbiguityResolver() {
         AmbiguityLoader loader = new AmbiguityLoader();
-        this.ambiguityMap = loader.loadRules("ambiguities.txt");
+        this.ambiguityMap = loader.loadRegularRules();   // 🚫 no file
+        this.startOnlyMap = loader.loadStartOnlyRules(); // 🚫 no file
     }
 
     public List<String> generateInterpretations(String[] tokens) {
@@ -25,30 +27,36 @@ public class AmbiguityResolver {
 
         int len = current.length();
 
+        // 1. Domyślna ścieżka (token bez zmian)
         current.append(tokens[index]);
         backtrack(tokens, index + 1, current, results);
         current.setLength(len);
 
-        String singleKey = tokens[index];
-        List<String> singleOptions = ambiguityMap.get(singleKey);
-        if (singleOptions != null) {
-            for (String replacement : singleOptions) {
-                current.append(replacement);
-                backtrack(tokens, index + 1, current, results);
-                current.setLength(len);
-            }
-        }
+        // 2. Pojedynczy token z reguły
+        appendAmbiguities(ambiguityMap.get(tokens[index]), index + 1, tokens, current, results, len);
 
+        // 3. Dwuelementowa reguła (jeśli dostępna)
         if (index < tokens.length - 1) {
-            String twoKey = tokens[index] + " " + tokens[index + 1];
-            List<String> twoTokenOptions = ambiguityMap.get(twoKey);
-            if (twoTokenOptions != null) {
-                for (String replacement : twoTokenOptions) {
-                    current.append(replacement);
-                    backtrack(tokens, index + 2, current, results);
-                    current.setLength(len);
-                }
+            String twoTokenKey = tokens[index] + " " + tokens[index + 1];
+
+            if (index == 0) {
+                appendAmbiguities(startOnlyMap.get(twoTokenKey), index + 2, tokens, current, results, len);
             }
+
+            appendAmbiguities(ambiguityMap.get(twoTokenKey), index + 2, tokens, current, results, len);
         }
     }
+
+    private void appendAmbiguities(List<String> options, int nextIndex, String[] tokens,
+                                   StringBuilder current, Set<String> results, int len) {
+        if (options == null) return;
+        for (String replacement : options) {
+            current.append(replacement);
+            backtrack(tokens, nextIndex, current, results);
+            current.setLength(len);
+        }
+    }
+
+
 }
+
