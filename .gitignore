@@ -14,7 +14,6 @@ build/
 *.iml
 *.iws
 out/
-
 # === JUnit/Test Output ===
 test-results/
 test-output/
