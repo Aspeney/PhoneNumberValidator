@@ -27,14 +27,7 @@ public class AmbiguityLoader {
 
         for (int hundred = 100; hundred <= 900; hundred += 100) {
             String hundredStr = String.valueOf(hundred);
-
-            char firstNonZero = '0';
-            for (char c : hundredStr.toCharArray()) {
-                if (c != '0') {
-                    firstNonZero = c;
-                    break;
-                }
-            }
+            char firstNonZero = hundredStr.charAt(0);
 
             for (int ones = 1; ones <= 9; ones++) {
                 String key = hundredStr + " " + ones;
@@ -43,18 +36,26 @@ public class AmbiguityLoader {
                 result.put(key, List.of(combined, joined));
             }
 
-
             for (int twoDigit = 10; twoDigit <= 99; twoDigit++) {
                 String key = hundredStr + " " + twoDigit;
                 String combined = "" + firstNonZero + twoDigit;
                 String joined = hundredStr + twoDigit;
                 result.put(key, List.of(combined, joined));
             }
+
+            for (int tens = 10; tens <= 90; tens += 10) {
+                for (int ones = 1; ones <= 9; ones++) {
+                    String key = hundredStr + " " + tens + " " + ones;
+                    int full = hundred + tens + ones;
+                    String compact = String.valueOf(firstNonZero) + (tens + ones);
+                    String joined = String.valueOf(full);
+                    result.put(key, List.of(compact, joined));
+                }
+            }
         }
 
         return result;
     }
-
 
     public Map<String, List<String>> loadStartOnlyRules() {
         Map<String, List<String>> map = new HashMap<>();

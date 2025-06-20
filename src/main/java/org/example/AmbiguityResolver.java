@@ -42,6 +42,11 @@ public class AmbiguityResolver {
 
             appendAmbiguities(ambiguityMap.get(twoTokenKey), index + 2, tokens, current, results, len);
         }
+
+        if (index < tokens.length - 2) {
+            String threeTokenKey = tokens[index] + " " + tokens[index + 1] + " " + tokens[index + 2];
+            appendAmbiguities(ambiguityMap.get(threeTokenKey), index + 3, tokens, current, results, len);
+        }
     }
 
     private void appendAmbiguities(List<String> options, int nextIndex, String[] tokens,
