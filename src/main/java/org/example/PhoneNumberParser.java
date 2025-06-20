@@ -3,7 +3,12 @@ package org.example;
 public class PhoneNumberParser {
 
     public String[] tokenize(String rawString) {
-        return rawString.trim().split("\\s+");
+        String trimmed = rawString.trim();
+        if (trimmed.isEmpty()) {
+            return new String[0];
+        }
+        return trimmed.split("\\s+");
     }
 }
+
 

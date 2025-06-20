@@ -27,15 +27,12 @@ public class AmbiguityResolver {
 
         int len = current.length();
 
-        // 1. Domyślna ścieżka (token bez zmian)
         current.append(tokens[index]);
         backtrack(tokens, index + 1, current, results);
         current.setLength(len);
 
-        // 2. Pojedynczy token z reguły
         appendAmbiguities(ambiguityMap.get(tokens[index]), index + 1, tokens, current, results, len);
 
-        // 3. Dwuelementowa reguła (jeśli dostępna)
         if (index < tokens.length - 1) {
             String twoTokenKey = tokens[index] + " " + tokens[index + 1];
 

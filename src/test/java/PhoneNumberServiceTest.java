@@ -2,6 +2,7 @@ import org.example.AmbiguityResolver;
 import org.example.PhoneNumberParser;
 import org.example.PhoneNumberService;
 import org.example.PhoneNumberValidator;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -10,55 +11,88 @@ import java.io.PrintStream;
 import java.util.Arrays;
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class PhoneNumberServiceTest {
 
-    private ByteArrayOutputStream outContent;
-    private PrintStream originalOut;
+    private PhoneNumberService service;
+    private TestPhoneNumberValidator validator;
+    private TestAmbiguityResolver resolver;
+    private TestPhoneNumberParser parser;
+
+    private final ByteArrayOutputStream output = new ByteArrayOutputStream();
+    private final PrintStream originalOut = System.out;
 
     @BeforeEach
-    void setUpStreams() {
-        originalOut = System.out;
-        outContent = new ByteArrayOutputStream();
-        System.setOut(new PrintStream(outContent));
+    void setUp() {
+        // Redirect System.out to capture console output
+        System.setOut(new PrintStream(output));
+
+        validator = new TestPhoneNumberValidator();
+        resolver = new TestAmbiguityResolver();
+        parser = new TestPhoneNumberParser();
+
+        service = new PhoneNumberService(validator, resolver, parser);
     }
 
     @Test
     void testProcessPrintsValidAndInvalidInterpretations() {
+        // Prepare controlled input
+        parser.setTokens(new String[]{"123", "456"});
+        resolver.setInterpretations(Arrays.asList("123456", "123-456"));
+        validator.setValidNumbers(List.of("123456")); // Only one valid
 
-        PhoneNumberParser parser = new PhoneNumberParser() {
-            @Override
-            public String[] tokenize(String rawString) {
-                return new String[]{"123", "456"};
-            }
-        };
-
-        AmbiguityResolver resolver = new AmbiguityResolver() {
-            @Override
-            public List<String> generateInterpretations(String[] tokens) {
-                return Arrays.asList("123456", "123-456");
-            }
-        };
-
-        PhoneNumberValidator validator = new PhoneNumberValidator() {
-            @Override
-            public boolean isValid(String s) {
-                return "123456".equals(s);
-            }
-        };
-
-        PhoneNumberService service = new PhoneNumberService(validator, resolver, parser);
         service.process("123 456");
 
-        String output = outContent.toString();
-
-        assertTrue(output.contains("Interpretation 1: 123456 [phone number: VALID]"));
-        assertTrue(output.contains("Interpretation 2: 123-456 [phone number: INVALID]"));
+        String consoleOutput = output.toString();
+        assertTrue(consoleOutput.contains("Interpretation 1: 123456 [phone number: VALID]"));
+        assertTrue(consoleOutput.contains("Interpretation 2: 123-456 [phone number: INVALID]"));
     }
 
-    @BeforeEach
-    void restoreStreams() {
-        Runtime.getRuntime().addShutdownHook(new Thread(() -> System.setOut(originalOut)));
+    // Reset System.out after all tests
+    @AfterEach
+    void tearDown() {
+        System.setOut(originalOut);
+    }
+
+    // === Stub Implementations ===
+
+    static class TestPhoneNumberValidator implements PhoneNumberValidator {
+        private List<String> validNumbers;
+
+        void setValidNumbers(List<String> validNumbers) {
+            this.validNumbers = validNumbers;
+        }
+
+        @Override
+        public boolean isValid(String phoneNumber) {
+            return validNumbers.contains(phoneNumber);
+        }
+    }
+
+    static class TestAmbiguityResolver extends AmbiguityResolver {
+        private List<String> interpretations;
+
+        void setInterpretations(List<String> interpretations) {
+            this.interpretations = interpretations;
+        }
+
+        @Override
+        public List<String> generateInterpretations(String[] tokens) {
+            return interpretations;
+        }
+    }
+
+    static class TestPhoneNumberParser extends PhoneNumberParser {
+        private String[] tokens;
+
+        void setTokens(String[] tokens) {
+            this.tokens = tokens;
+        }
+
+        @Override
+        public String[] tokenize(String rawPhoneNumber) {
+            return tokens;
+        }
     }
 }
