@@ -39,11 +39,25 @@ public class AmbiguityLoaderTest {
     }
 
     @Test
+    void shouldIncludeNewZeroTrailingTwoDigitCases() {
+        Map<String, List<String>> rules = loader.loadRegularRules();
+
+        assertTrue(rules.containsKey("700 2"));
+        assertEquals(List.of("72", "7002"), rules.get("700 2"));
+
+        assertTrue(rules.containsKey("300 9"));
+        assertEquals(List.of("39", "3009"), rules.get("300 9"));
+
+        assertTrue(rules.containsKey("700 24"));
+        assertEquals(List.of("724", "70024"), rules.get("700 24"));
+
+        assertTrue(rules.containsKey("100 99"));
+        assertEquals(List.of("199", "10099"), rules.get("100 99"));
+    }
+
+    @Test
     void shouldLoadStartOnlyRulesIfContainsExpectedEntry() {
         Map<String, List<String>> rules = loader.loadStartOnlyRules();
-
-        assertEquals(1, rules.size());
-        assertTrue(rules.containsKey("69 30"));
-        assertEquals(List.of("6930", "693"), rules.get("69 30"));
+        assertTrue(rules.isEmpty());
     }
 }

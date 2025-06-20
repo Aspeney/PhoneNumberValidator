@@ -9,8 +9,8 @@ public class AmbiguityResolver {
 
     public AmbiguityResolver() {
         AmbiguityLoader loader = new AmbiguityLoader();
-        this.ambiguityMap = loader.loadRegularRules();   // 🚫 no file
-        this.startOnlyMap = loader.loadStartOnlyRules(); // 🚫 no file
+        this.ambiguityMap = loader.loadRegularRules();
+        this.startOnlyMap = loader.loadStartOnlyRules();
     }
 
     public List<String> generateInterpretations(String[] tokens) {
@@ -53,7 +53,5 @@ public class AmbiguityResolver {
             current.setLength(len);
         }
     }
-
-
 }
 

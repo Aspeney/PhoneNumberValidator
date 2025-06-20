@@ -4,6 +4,7 @@ import java.util.*;
 
 public class AmbiguityLoader {
 
+
     public Map<String, List<String>> loadRegularRules() {
         Map<String, List<String>> map = new HashMap<>();
 
@@ -16,14 +17,47 @@ public class AmbiguityLoader {
             }
         }
 
+        map.putAll(generateZeroTrailingCases());
         map.putAll(generateSingleTokenAmbiguities());
-
         return map;
     }
 
+    private Map<String, List<String>> generateZeroTrailingCases() {
+        Map<String, List<String>> result = new HashMap<>();
+
+        for (int hundred = 100; hundred <= 900; hundred += 100) {
+            String hundredStr = String.valueOf(hundred);
+
+            char firstNonZero = '0';
+            for (char c : hundredStr.toCharArray()) {
+                if (c != '0') {
+                    firstNonZero = c;
+                    break;
+                }
+            }
+
+            for (int ones = 1; ones <= 9; ones++) {
+                String key = hundredStr + " " + ones;
+                String combined = "" + firstNonZero + ones;
+                String joined = hundredStr + ones;
+                result.put(key, List.of(combined, joined));
+            }
+
+
+            for (int twoDigit = 10; twoDigit <= 99; twoDigit++) {
+                String key = hundredStr + " " + twoDigit;
+                String combined = "" + firstNonZero + twoDigit;
+                String joined = hundredStr + twoDigit;
+                result.put(key, List.of(combined, joined));
+            }
+        }
+
+        return result;
+    }
+
+
     public Map<String, List<String>> loadStartOnlyRules() {
         Map<String, List<String>> map = new HashMap<>();
-        map.put("69 30", List.of("6930", "693"));
         return map;
     }
 
